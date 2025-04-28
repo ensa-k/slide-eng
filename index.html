@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .custom_event_slider * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .custom_event_slider_container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .custom_event_slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+            display: flex;
+            flex-direction: row;
+        }
+
+        .custom_event_slide.active {
+            opacity: 1;
+            z-index: 1;
+        }
+
+        .custom_event_slide_content {
+            width: 50%;
+            height: 100%;
+            padding: 8% 5%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+            /* Improved gradient with clear split */
+            color: white;
+        }
+
+        .custom_event_slide_image {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+        }
+
+        .custom_event_logo {
+            max-width: 120px;
+            max-height: 120px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+        }
+
+        .custom_event_slide_title {
+            font-size: 3.2rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            line-height: 1.2;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .custom_event_slide_description {
+            font-size: 1.25rem;
+            margin-bottom: 35px;
+            line-height: 1.6;
+            max-width: 600px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .custom_event_slide_button {
+            display: inline-block;
+            padding: 14px 32px;
+            background-color: #002C84;
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            max-width: 200px;
+            text-align: center;
+        }
+
+        .custom_event_slide_button:hover {
+            background-color: #1C7C95;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .custom_event_cards_container {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            z-index: 10;
+            width: 90%;
+            max-width: 1210px;
+            padding: 10px 0;
+        }
+
+        .custom_event_card {
+            width: 160px;
+            height: 100px;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            color: white;
+            border: 2px solid transparent;
+        }
+
+        .custom_event_card.active {
+            background-color: rgba(255, 255, 255, 0.25);
+            border-color: white;
+            transform: translateY(-5px);
+        }
+
+        .custom_event_card:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .custom_event_card_title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .custom_event_card_date {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* Modern dots navigation for mobile */
+        .custom_event_dots_container {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none; /* Hidden by default, shown on mobile */
+            justify-content: center;
+            gap: 12px;
+            z-index: 10;
+        }
+
+        .custom_event_dot {
+            width: 12px;
+            height: 12px;
+            background-color: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .custom_event_dot.active {
+            background-color: white;
+            transform: scale(1.2);
+        }
+
+        .custom_event_dot.active::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* Split line for visual separation */
+        .custom_event_split_line {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            height: 100%;
+            width: 2px;
+            z-index: 3;
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 768px) {
+            .custom_event_slide {
+                flex-direction: column;
+            }
+
+            .custom_event_slide_image {
+                background-position: 80%;
+            }
+
+            .custom_event_slide_content {
+                width: 100%;
+                height: 100%;
+                /* Reversed gradient for mobile */
+                padding: 0 20px;
+                /* Center content at bottom */
+                justify-content: flex-end;
+                padding-bottom: 120px;
+            }
+
+            .custom_event_slide_image {
+                width: 100%;
+                height: 100%;
+            }
+
+            .custom_event_slide_title {
+                font-size: 1.8rem;
+                margin-bottom: 15px;
+            }
+
+            .custom_event_slide_description {
+                font-size: 1rem;
+                margin-bottom: 20px;
+                max-width: 100%;
+            }
+
+            .custom_event_slide_button {
+                padding: 10px 25px;
+                font-size: 0.9rem;
+            }
+
+            .custom_event_logo {
+                max-width: 80px;
+                max-height: 80px;
+                margin-bottom: 15px;
+            }
+
+            /* Hide cards on mobile */
+            .custom_event_cards_container {
+                display: none;
+            }
+            
+            /* Show dots on mobile */
+            .custom_event_dots_container {
+                display: flex;
+            }
+
+            /* Hide split line on mobile */
+            .custom_event_split_line {
+                display: none;
+            }
+
+            /* Add horizontal split line for mobile */
+            .custom_event_horizontal_split {
+                position: absolute;
+                top: 50%;
+                left: 0;
+                width: 100%;
+                height: 2px;
+                z-index: 3;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .custom_event_slide_content {
+                padding-bottom: 100px;
+            }
+            
+            .custom_event_slide_title {
+                font-size: 1.5rem;
+                margin-bottom: 10px;
+            }
+
+            .custom_event_slide_description {
+                font-size: 0.9rem;
+                margin-bottom: 15px;
+                line-height: 1.4;
+            }
+            
+            .custom_event_slide_button {
+                padding: 8px 20px;
+                font-size: 0.8rem;
+            }
+
+            .custom_event_logo {
+                max-width: 60px;
+                max-height: 60px;
+                margin-bottom: 10px;
+            }
+            
+            .custom_event_dots_container {
+                bottom: 20px;
+                gap: 10px;
+            }
+            
+            .custom_event_dot {
+                width: 10px;
+                height: 10px;
+            }
+        }
+
+        /* Full screen styles */
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+        }
+
+        .custom_event_slider {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div class="custom_event_slider">
+        <div class="custom_event_slider_container" id="customEventSlider">
+            <!-- Slides will be generated by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Event data - you can modify this for your events
+            const customEvents = [
+{
+    title: "ENSAK announces a new partnership with DICASTAL",
+    title2: "Partnership ENSAK x DICASTAL",
+    description: "We are proud to announce our new partnership with DICASTAL. A promising collaboration that paves the way for great opportunities in the future.",
+    image: "https://ensa.uit.ac.ma/wp-content/uploads/2025/04/S5.webp",
+    logo: "https://ensa.uit.ac.ma/wp-content/uploads/2025/04/logo1.png",
+    date: "March 18, 2025",
+    link: "https://www.instagram.com/p/DIj7QYBtyOi/?utm_source=ig_web_copy_link"
+},
+{
+    title: "A new chapter of cooperation with IMT",
+    title2: "Visit to IMT",
+    description: "As part of our partnership, we had the pleasure of visiting IMT Mines Alès. A rewarding experience marked by constructive exchanges and promising prospects for the future.",
+    image: "https://ensa.uit.ac.ma/wp-content/uploads/2025/04/S1.webp",
+    logo: "https://ensa.uit.ac.ma/wp-content/uploads/2025/04/imt-mines-ales-logo.png",
+    date: "March 04, 2025",
+    link: "https://www.instagram.com/p/DGyqNimNwQP/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA=="
+},
+{
+    title: "Meeting our students at Polytech Lille",
+    title2: "Meeting at Polytech Lille",
+    description: "A day rich in constructive exchanges paving the way for promising future collaborations. This visit marks an important step toward strengthening our academic and institutional ties.",
+    image: "https://ensa.uit.ac.ma/wp-content/uploads/2025/04/s2.webp",
+    logo: "https://ensa.uit.ac.ma/wp-content/uploads/2025/04/Polytech-Lille-logo.png",
+    date: "March 27, 2025",
+    link: "https://www.instagram.com/p/DHuDTFNtg6a/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA=="
+},
+{
+    title: "Towards strengthened collaboration with Polytech Montpellier",
+    title2: "Visit to Polytech Montpellier",
+    description: "Protect your digital assets with insights from top security professionals. Stay ahead of threats in this ever-evolving landscape.", // (Note: This line was already in English in your original text)
+    image: "https://ensa.uit.ac.ma/wp-content/uploads/2025/04/S3.webp",
+    logo: "https://ensa.uit.ac.ma/wp-content/uploads/2025/04/polytech-montpellier-logo.png",
+    date: "March 19, 2025",
+    link: "https://www.instagram.com/p/DHYRS9ANtfw/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA=="
+},
+{
+    title: "Celebrating International Women's Day at ENSA Kénitra",
+    title2: "Tribute to ENSA Women",
+    description: "On the occasion of International Women's Rights Day, ENSA Kénitra organized a musical ceremony to honor the women of its community.",
+    image: "https://ensa.uit.ac.ma/wp-content/uploads/2025/04/S9.webp",
+    logo: "https://ensa.uit.ac.ma/wp-content/uploads/2025/04/icon2.png",
+    date: "March 08, 2025",
+    link: "https://www.instagram.com/reel/DG-4bW_Nv4d/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA=="
+},
+{
+    title: "Confirmed partnership between ENSAK and Urban Agency",
+    title2: "ENSAK x Urban Agency",
+    description: "ENSAK and the Urban Agency signed a partnership during the 22nd Council session, marking a new stage of collaboration for territorial development.",
+    image: "https://ensa.uit.ac.ma/wp-content/uploads/2025/04/S8.webp",
+    logo: "https://ensa.uit.ac.ma/wp-content/uploads/2025/04/logo2.png",
+    date: "March 19, 2025",
+    link: "https://www.instagram.com/p/DHZLtYQNkF9/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA=="
+},
+{
+    title: "ENSAK brilliantly wins the UIT Ramadan Tournament 2025!",
+    title2: "Victory for ENSAK Football Club",
+    description: "The ENSAK football club wins the UIT Ramadan Tournament 2025, once again confirming its excellence on the field.",
+    image: "https://ensa.uit.ac.ma/wp-content/uploads/2025/04/S7.webp",
+    logo: "https://ensa.uit.ac.ma/wp-content/uploads/2025/04/icon1.png",
+    date: "March 28, 2025",
+    link: "https://www.instagram.com/p/DHvrQsoN69T/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA=="
+},
+        
+            ];
+
+            const sliderContainer = document.getElementById('customEventSlider');
+            let currentCustomSlide = 0;
+
+            // Generate slides
+            function generateCustomSlides() {
+                let slidesHTML = '';
+                let cardsHTML = '';
+                let dotsHTML = '';
+
+                customEvents.forEach((event, index) => {
+                    // Create slide with link on button
+                    slidesHTML += `
+                        <div class="custom_event_slide ${index === 0 ? 'active' : ''}">
+                            <div class="custom_event_slide_image" style="background-image: url('${event.image}')"></div>
+                            <div class="custom_event_slide_content">
+                                <img src="${event.logo}" alt="${event.title} Logo" class="custom_event_logo">
+                                <h2 class="custom_event_slide_title">${event.title}</h2>
+                                <p class="custom_event_slide_description">${event.description}</p>
+                                
+                            </div>
+                            
+                            <div class="custom_event_horizontal_split"></div>
+                        </div>
+                    `;
+
+                    // Create card
+                    cardsHTML += `
+                        <div class="custom_event_card ${index === 0 ? 'active' : ''}" data-index="${index}">
+                            <div class="custom_event_card_title">${event.title2}</div>
+                            <div class="custom_event_card_date">${event.date}</div>
+                        </div>
+                    `;
+                    
+                    // Create dot for mobile
+                    dotsHTML += `<div class="custom_event_dot ${index === 0 ? 'active' : ''}" data-index="${index}"></div>`;
+                });
+
+                // Add slides to container
+                sliderContainer.innerHTML = slidesHTML;
+
+                // Add event cards
+                const cardsContainer = `<div class="custom_event_cards_container">${cardsHTML}</div>`;
+                sliderContainer.insertAdjacentHTML('beforeend', cardsContainer);
+                
+                // Add dots for mobile
+                const dotsContainer = `<div class="custom_event_dots_container">${dotsHTML}</div>`;
+                sliderContainer.insertAdjacentHTML('beforeend', dotsContainer);
+
+                // Add event listeners for cards
+                document.querySelectorAll('.custom_event_card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        goToCustomSlide(parseInt(card.dataset.index));
+                    });
+                });
+                
+                // Add event listeners for dots
+                document.querySelectorAll('.custom_event_dot').forEach(dot => {
+                    dot.addEventListener('click', () => {
+                        goToCustomSlide(parseInt(dot.dataset.index));
+                    });
+                });
+            }
+
+            // Change slide
+            function changeCustomSlide(direction) {
+                const slides = document.querySelectorAll('.custom_event_slide');
+                const cards = document.querySelectorAll('.custom_event_card');
+                const dots = document.querySelectorAll('.custom_event_dot');
+
+                // Remove active class
+                slides[currentCustomSlide].classList.remove('active');
+                cards[currentCustomSlide].classList.remove('active');
+                dots[currentCustomSlide].classList.remove('active');
+
+                // Calculate new slide index
+                if (direction === 'next') {
+                    currentCustomSlide = (currentCustomSlide + 1) % slides.length;
+                } else {
+                    currentCustomSlide = (currentCustomSlide - 1 + slides.length) % slides.length;
+                }
+
+                // Add active class to new slide
+                slides[currentCustomSlide].classList.add('active');
+                cards[currentCustomSlide].classList.add('active');
+                dots[currentCustomSlide].classList.add('active');
+            }
+
+            // Go to specific slide
+            function goToCustomSlide(index) {
+                const slides = document.querySelectorAll('.custom_event_slide');
+                const cards = document.querySelectorAll('.custom_event_card');
+                const dots = document.querySelectorAll('.custom_event_dot');
+
+                // Remove active class
+                slides[currentCustomSlide].classList.remove('active');
+                cards[currentCustomSlide].classList.remove('active');
+                dots[currentCustomSlide].classList.remove('active');
+
+                // Set new slide
+                currentCustomSlide = index;
+
+                // Add active class to new slide
+                slides[currentCustomSlide].classList.add('active');
+                cards[currentCustomSlide].classList.add('active');
+                dots[currentCustomSlide].classList.add('active');
+            }
+
+            // Auto slide
+            function startCustomAutoSlide() {
+                return setInterval(() => {
+                    changeCustomSlide('next');
+                }, 5000); // Change slide every 5 seconds
+            }
+
+            // Initialize slider
+            generateCustomSlides();
+            let customAutoSlideInterval = startCustomAutoSlide();
+
+            // Pause auto slide on hover
+            sliderContainer.addEventListener('mouseenter', () => {
+                clearInterval(customAutoSlideInterval);
+            });
+
+            // Resume auto slide on mouse leave
+            sliderContainer.addEventListener('mouseleave', () => {
+                customAutoSlideInterval = startCustomAutoSlide();
+            });
+
+            // Handle touch events for mobile swipe
+            let customTouchStartX = 0;
+            let customTouchEndX = 0;
+
+            sliderContainer.addEventListener('touchstart', (e) => {
+                customTouchStartX = e.changedTouches[0].screenX;
+            });
+
+            sliderContainer.addEventListener('touchend', (e) => {
+                customTouchEndX = e.changedTouches[0].screenX;
+                handleCustomSwipe();
+            });
+
+            function handleCustomSwipe() {
+                const swipeThreshold = 50;
+                if (customTouchEndX < customTouchStartX - swipeThreshold) {
+                    // Swipe left
+                    changeCustomSlide('next');
+                } else if (customTouchEndX > customTouchStartX + swipeThreshold) {
+                    // Swipe right
+                    changeCustomSlide('prev');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
